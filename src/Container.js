@@ -21,7 +21,8 @@ export default class Container extends React.Component {
     super()
     this.state = {
       index: 0,
-      title: 'Survey'
+      title: 'Survey',
+      componentState: {}
     }
   }
 
@@ -42,16 +43,56 @@ export default class Container extends React.Component {
 
     window.onpopstate = (event) => {
       const backState = JSON.parse(sessionStorage.getItem(event.state))
-      this.setState(backState)
+      const browserHistory = this.state.data ?
+        (this.state.data.browserHistory ? this.state.data.browserHistory : {}) : {}
+
+      const mutations = this.state.data ?
+        (this.state.data.mutations ? this.state.data.mutations : {}) : {}
+      for (var k in backState.data) {
+        if (this.state.data[k] !== backState.data[k] && k !== 'mutations') {
+          console.log(k, this.state.data[k], backState.data[k])
+          mutations[k] = {
+            ...mutations[k],
+            [Date.now()]: this.state.data[k]
+          }
+        }
+      }
+
+      this.setState({
+        ...backState,
+        data: {
+          ...backState.data,
+          mutations,
+          browserHistory: {
+            ...browserHistory,
+            [Date.now()]: {
+              pop: event.state
+            }
+          }
+        }
+      })
     }
 
     if (+params.simto) {
-      this.simulateTo(params.simto)
+      this.simulateTo(params.simto, params)
     }
 
     if (params.index) {
       const backState = JSON.parse(sessionStorage.getItem(params.index))
-      this.setState(backState)
+      const browserHistory = this.state.data ?
+        (this.state.data.browserHistory ? this.state.data.browserHistory : {}) : {}
+      this.setState({
+        ...backState,
+        data: {
+          ...backState.data,
+          browserHistory: {
+            ...browserHistory,
+            [Date.now()]: {
+              load: params.index
+            }
+          }
+        }
+      })
     }
   }
 
@@ -59,40 +100,114 @@ export default class Container extends React.Component {
     document.title = this.state.title
     history.pushState(this.state.index, this.state.title, location.search)
     sessionStorage.setItem(this.state.index, JSON.stringify(this.state))
+    ;(async () => {
+      if (!this.state.data.endpoint) {
+        console.log('Warning! No endpoint')
+      } else if (!this.state.data.fireKey) {
+        try {
+          const endpoint = echo(this.state.data.endpoint, this.state.data)
+          const fireKey = await firePush(endpoint, this.state.data.fireKey, this.state.data)
+          this.setState({
+            data: {
+              ...this.state.data,
+              fireKey
+            }
+          })
+        } catch (e) {
+          console.error(e)
+          this.setState({
+            data: {
+              ...this.state.data,
+              firefail: true
+            }
+          })
+        }
+      }
+    })()
   }
 
   push = (response) => {
+    const index = this.state.index + 1
+    const mutations = this.state.data ?
+      (this.state.data.mutations ? this.state.data.mutations : {}) : {}
+    for (var k in response) {
+      if (k in this.state.data) {
+        mutations[k] = {
+          ...mutations[k],
+          [Date.now()]: this.state.data[k]
+        }
+      }
+    }
+    const newData = {
+      ...response,
+      [`module_${this.state.index}_t`]: Date.now(),
+      [`module_${this.state.index}_component`]: this.props.modules[this.state.index].component
+    }
     this.setState((state) => ({
       data: {
         ...state.data,
-        ...response,
-        [`module_${this.state.index}_t`]: Date.now(),
-        [`module_${this.state.index}_component`]: this.props.modules[this.state.index].component
+        ...newData,
+        mutations
       },
       componentState: {},
-      index: state.index + 1
+      index
     }), () => {
       document.querySelector('.main').scrollTop = 0
       history.pushState(this.state.index, this.state.title, `?index=${this.state.index}`)
       sessionStorage.setItem(this.state.index, JSON.stringify(this.state))
       const endpoint = echo(this.state.data.endpoint, this.state.data)
-      ;(async () => {
-        const fireKey = await firePush(endpoint, this.state.fireKey, this.state.data)
-        this.setState({ fireKey })
-      })()
+      try {
+        firePush(endpoint, this.state.data.fireKey, newData, index)
+      } catch (e) {
+        console.error(e)
+        this.setState({
+          data: {
+            ...this.state.data,
+            firefail: true
+          }
+        })
+      }
     })
   }
 
   renderlessPush = (response) => {
+    const index = this.state.index + 1
+    const mutations = this.state.data ?
+      (this.state.data.mutations ? this.state.data.mutations : {}) : {}
+    for (var k in response) {
+      if (k in this.state.data) {
+        mutations[k] = {
+          ...mutations[k],
+          [Date.now()]: this.state.data[k]
+        }
+      }
+    }
+    const newData = {
+      ...response,
+      [`module_${this.state.index}_t`]: Date.now(),
+      [`module_${this.state.index}_component`]: this.props.modules[this.state.index].component
+    }
     this.setState((state) => ({
       data: {
         ...state.data,
-        ...response,
-        [`module_${this.state.index}_t`]: Date.now(),
-        [`module_${this.state.index}_component`]: this.props.modules[this.state.index].component
+        ...newData,
+        mutations
       },
-      index: state.index + 1
-    }))
+      index
+    }), () => {
+      try {
+        const endpoint = echo(this.state.data.endpoint, this.state.data)
+        firePush(endpoint, this.state.data.fireKey, newData, index)
+      } catch (e) {
+        console.error(e)
+        this.setState({
+          data: {
+            ...this.state.data,
+            firefail: true
+          }
+        })
+      }
+    })
   }
 
   set = (data) => {
@@ -104,12 +219,15 @@ export default class Container extends React.Component {
     }))
   }
 
-  simulateTo = (index) => {
+  simulateTo = (index, withData) => {
     this.setState((state) => {
       const { modules, components } = this.props
       const simulated = simulateOver(state.data, modules.slice(0, index), components)
       return {
-        data: simulated,
+        data: {
+          ...simulated,
+          ...withData
+        },
         index: simulated.index
       }
     })
@@ -143,7 +261,7 @@ export default class Container extends React.Component {
       }, {
         ...state,
         ...this.state.data,
-        ...componentState
+        ...componentState,
       })
     }
 
@@ -153,16 +271,24 @@ export default class Container extends React.Component {
       <Wrapper
         state={this.state}
         length={modules.length}
-        set={this.setState}
         simulatePush={() => this.push(Component.simulate(props))}
       >
-        <Component
-          {...props}
-          key={index}
-          set={this.set}
-          push={this.push}
-          renderlessPush={this.renderlessPush}
-        />
+      {
+        this.state.data.fireKey ?
+          (
+            <Component
+              {...props}
+              key={index}
+              index={index}
+              data={this.state.data}
+              set={this.set}
+              push={this.push}
+              renderlessPush={this.renderlessPush}
+            />
+          ) : (
+            <p>Initializing...</p>
+          )
+      }
       </Wrapper>
     )
   }

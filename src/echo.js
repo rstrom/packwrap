@@ -18,7 +18,7 @@ function echo (prop, env) {
 
     case /^\$(\w|_).*/.test(prop):
       return env.hasOwnProperty(prop.substring(1)) ?
-        env[prop.substring(1)] : prop
+        echo(env[prop.substring(1)], env) : prop
 
     default:
       return prop

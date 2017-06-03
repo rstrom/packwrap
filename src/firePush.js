@@ -1,18 +1,20 @@
-export default async (endpoint, key, data) => {
+export default async (endpoint, key, data, index) => {
   if (!key) {
     const post = await fetch(`${endpoint}.json`, {
       method: 'POST',
       body: JSON.stringify({
-        ...data,
-        timestamp: {
-          '.sv': 'timestamp'
+        0: {
+          ...data,
+          timestamp: {
+            '.sv': 'timestamp'
+          }
         }
       })
     })
     const { name } = await post.json()
     return name
   } else {
-    const put = await fetch(`${endpoint}/${key}.json`, {
+    const put = await fetch(`${endpoint}/${key}/${index}.json`, {
       method: 'PUT',
       body: JSON.stringify({
         ...data,
