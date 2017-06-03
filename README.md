@@ -59,7 +59,7 @@ const initialState = {
 const modules = [
   {
     "component": "Markdown",
-    "### Instructions\nPlease be honest"
+    "source": "### Instructions\nPlease be honest"
   },
   {
     "component": "Radio",
@@ -83,3 +83,5 @@ const elementId = 'root' // id of div to mount app
 
 run(initialState, modules, elementId, wrapper)
 ```
+
+See a working version of this simplified example [here](https://rstrom.github.io/packwrap/examples/dist/).
