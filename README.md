@@ -59,10 +59,11 @@ const initialState = {
 const modules = [
   {
     "component": "Markdown",
-    "### Instructions\nPlease be honest"
+    "source": "### Instructions\nPlease be honest"
   },
   {
     "component": "Radio",
+    "name": "candidate",
     "text": "Who's better?",
     "options": [
       "Hillary Clinton",
@@ -71,7 +72,8 @@ const modules = [
   },
   {
     "component": "Radio",
-    "text": "What about Bernie?",
+    "name": "bernie",
+    "text": "You prefer ${candidate}?? What about Bernie?",
     "options": [
       "Love him",
       "Don't like him"

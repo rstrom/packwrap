@@ -103,6 +103,14 @@ export default class Container extends React.Component {
     ;(async () => {
       if (!this.state.data.endpoint) {
         console.log('Warning! No endpoint')
+        if (this.state.data.endpoint === false) {
+          this.setState({
+            data: {
+              ...this.state.data,
+              fireKey: 500
+            }
+          })
+        }
       } else if (!this.state.data.fireKey) {
         try {
           const endpoint = echo(this.state.data.endpoint, this.state.data)
