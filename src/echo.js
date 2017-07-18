@@ -13,7 +13,8 @@ function echo (prop, env) {
 
     case /\${.+?}/.test(prop):
       // replace ${foo} with env[foo]
-      const p = prop.replace(/\${(.+?)}/, (m, p1) => env[p1])
+      // ${${qux}} -> ${env[qux]}
+      const p = prop.replace(/\${([^\${}]+?)}/, (m, p1) => env[p1])
       return echo(p, env)
 
     case /^\$(\w|_).*/.test(prop):
