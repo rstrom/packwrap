@@ -1,4 +1,4 @@
-![packwrap](packwrap.png)
+![packwrap](/assets/packwrap.png)
 ___
 Packwrap is a framework to build modular surveys based on React components and a declarative survey format. The framework provides state management, simple integration with a REST api backend and simulated data responses.
 
@@ -90,4 +90,4 @@ See a working version of this simplified example [here](https://rstrom.github.io
 Packwrap currently targets IE10+ and evergreen browsers. Compatibility table coming soon...
 
 Thanks to BrowserStack for providing cross-browser testing for this project. They are an excellent service for testing your surveys across many browsers and devices and support open-source projects.
-[![browserstack](browserstacklogo.svg)](https://www.browserstack.com/)
+[![browserstack](/assets/browserstack.png)](https://www.browserstack.com/)
