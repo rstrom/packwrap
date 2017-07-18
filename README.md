@@ -85,3 +85,9 @@ run(initialState, modules, elementId, wrapper)
 ```
 
 See a working version of this simplified example [here](https://rstrom.github.io/packwrap/examples/dist/).
+
+## Browser support
+Packwrap currently targets IE10+ and evergreen browsers. Compatibility table coming soon...
+
+Thanks to BrowserStack for providing cross-browser testing for this project. They are an excellent service for testing your surveys across many browsers and devices and support open-source projects.
+[![browserstack](browserstacklogo.svg)](https://www.browserstack.com/)
