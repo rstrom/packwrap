@@ -12,7 +12,7 @@ function simulate (SL, modules, components, to) {
   SL.reset()
   modules.slice(0, to)
     .reduce((data, m) => {
-      console.log(data)
+      console.log('sim', data)
       const component = components[m.component]
       component.defaultProps = component.defaultProps || {}
       const props = {

@@ -1,8 +1,12 @@
 function mung (data) {
   for (let k in data) {
+    // delete any internal params that start with "_"!
+    if (/^_/.test(k)) {
+      delete data[k]
+    }
+
     if (/[\$#[\]\/\.]/.test(k)) {
       const clean = k.replace(/[\$#[\]\/\.]/g, '*')
-      console.log(`Changed ${k} to ${clean}`)
       data[clean] = data[k]
       delete data[k]
     }

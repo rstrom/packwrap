@@ -65,20 +65,6 @@ export default class Container extends React.Component {
     this.SL.set(screenState)
   }
 
-  simulateTo = (index, withData) => {
-    this.setState((state) => {
-      const { modules, components } = this.props
-      const simulated = simulateOver(state.data, modules.slice(0, index), components)
-      return {
-        data: {
-          ...simulated,
-          ...withData
-        },
-        index: simulated.index
-      }
-    })
-  }
-
   render () {
     const {
       components,
